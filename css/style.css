@@ -1,0 +1,188 @@
+/* General Styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Roboto", sans-serif;
+}
+
+body {
+    background-color: #F7F7F7;
+    color: #333333;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.header {
+    background-color: #34A853; /* Primary accent color for gains */
+    color: white;
+    text-align: center;
+    padding: 1.5rem 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.total-value {
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+}
+
+/* Main Container */
+.main-container {
+    flex: 1;
+    padding: 2rem;
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+    .main-container {
+        grid-template-columns: 1fr 2fr;
+    }
+}
+
+/* Add Cryptocurrency Form */
+.add-crypto {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: relative; /* To ensure the dropdown stays within the form */
+}
+
+.add-crypto h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.add-crypto form {
+    display: flex;
+    flex-direction: column;
+}
+
+.add-crypto label {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.add-crypto input {
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    width: 100%; /* Ensure the inputs take full width of the container */
+}
+
+/* Dropdown Styling */
+#crypto-dropdown {
+    position: absolute;
+    top: 150px; /* Adjusted to be right below the input */
+    left: 20;
+    width: 90.1%; /* Match the width of the input */
+    background-color: white;
+    border-top: none; /* No border at the top to connect to input */
+    z-index: 100; /* Ensure it's above other elements */
+    max-height: 150px;
+    overflow-y: auto;
+   
+}
+
+.dropdown-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0;
+}
+
+/* Quantity and Button */
+#crypto-quantity {
+    width: 100%;
+}
+
+.btn-add {
+    padding: 0.75rem;
+    background-color: #34A853;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-add:hover {
+    background-color: #2e933a;
+}
+
+/* Portfolio Section */
+.portfolio {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.portfolio h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+#portfolio-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.portfolio-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #fff;
+}
+
+.portfolio-item p {
+    margin: 0;
+}
+
+/* Chart Section */
+.chart {
+    grid-column: 1 / -1;
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chart h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+canvas {
+    width: 100%;
+    max-height: 400px;
+}
+
+/* Footer */
+.footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 1rem 0;
+}
