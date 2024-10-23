@@ -586,25 +586,32 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 },{}],"1Z4Rq":[function(require,module,exports) {
 var _portfolioManagerMjs = require("./portfolioManager.mjs");
 var _apiServiceMjs = require("./apiService.mjs");
+var _uiComponentsMjs = require("./uiComponents.mjs");
 document.addEventListener("DOMContentLoaded", ()=>{
     // Render the portfolio on page load
-    (0, _portfolioManagerMjs.renderPortfolio)();
+    (0, _uiComponentsMjs.renderPortfolio)();
     (0, _portfolioManagerMjs.updateTotalValue)();
     // Handle the form submission to add a cryptocurrency
     document.getElementById("crypto-form").addEventListener("submit", async (event)=>{
         event.preventDefault();
         const cryptoName = document.getElementById("crypto-name").value;
         const cryptoQuantity = parseFloat(document.getElementById("crypto-quantity").value);
-        // Fetch the price of the selected cryptocurrency
-        const cryptoPrice = await (0, _apiServiceMjs.fetchCryptoPrice)(cryptoName.toLowerCase());
-        if (cryptoPrice) {
-            (0, _portfolioManagerMjs.addCrypto)(cryptoName, cryptoQuantity);
-            // Update the total portfolio value
-            document.getElementById("portfolio-value").innerText = (0, _portfolioManagerMjs.getTotalValue)().toFixed(2);
-            // Clear the form inputs
-            document.getElementById("crypto-name").value = "";
-            document.getElementById("crypto-quantity").value = "";
-        } else alert("Cryptocurrency not found or price unavailable.");
+        const cryptoList = await (0, _apiServiceMjs.fetchCryptoList)(cryptoName.toLowerCase());
+        const selectedCrypto = cryptoList.find((crypto)=>crypto.name.toLowerCase() === cryptoName.toLowerCase());
+        if (selectedCrypto) {
+            // Fetch the current price of the selected cryptocurrency
+            const cryptoPrice = await (0, _apiServiceMjs.fetchCryptoPrice)(selectedCrypto.id);
+            if (cryptoPrice) {
+                (0, _portfolioManagerMjs.addCrypto)(selectedCrypto.name, cryptoQuantity, selectedCrypto.image);
+                (0, _uiComponentsMjs.renderPortfolio)();
+                (0, _portfolioManagerMjs.updateTotalValue)();
+                alert("Your portfolio has been updated");
+                //clear the input field
+                document.getElementById("crypto-name").value = "";
+                document.getElementById("crypto-quantity").value = "";
+            } else // If price is not available, alert the user
+            alert("Selected cryptocurrency price is unavailable.");
+        } else alert("Cryptocurrency not found or image unavailable.");
     });
     // Add event listener for searching cryptocurrencies
     const cryptoInput = document.getElementById("crypto-name");
@@ -652,87 +659,63 @@ function displayCryptoDropdown(cryptoList) {
     } else dropdown.style.display = "none"; // Hide the dropdown if no results
 }
 
-},{"./portfolioManager.mjs":"iWjTE","./apiService.mjs":"6rMlk"}],"iWjTE":[function(require,module,exports) {
+},{"./portfolioManager.mjs":"iWjTE","./apiService.mjs":"6rMlk","./uiComponents.mjs":"caVH5"}],"iWjTE":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 // Function to add a cryptocurrency to the portfolio
 parcelHelpers.export(exports, "addCrypto", ()=>addCrypto);
-// Function to remove a cryptocurrency from the portfolio
-parcelHelpers.export(exports, "removeCrypto", ()=>removeCrypto);
+// Function to get the total number cryptocurrencies in the portfolio
+parcelHelpers.export(exports, "getTotalAssets", ()=>getTotalAssets);
 // Function to get the total value of the portfolio
 parcelHelpers.export(exports, "getTotalValue", ()=>getTotalValue);
 // Function to update the displayed total value in the UI
 parcelHelpers.export(exports, "updateTotalValue", ()=>updateTotalValue);
-// Function to render the portfolio in the UI
-parcelHelpers.export(exports, "renderPortfolio", ()=>renderPortfolio);
 var _utilsMjs = require("./utils.mjs");
-function addCrypto(name, quantity) {
+var _apiServiceMjs = require("./apiService.mjs");
+function addCrypto(name, quantity, image) {
     const portfolio = (0, _utilsMjs.getPortfolio)();
     const existingCrypto = portfolio.find((crypto)=>crypto.name === name);
     if (existingCrypto) // If the cryptocurrency already exists, update the quantity
     existingCrypto.quantity += quantity;
-    else // Otherwise, add a new cryptocurrency
-    portfolio.push({
+    else // Otherwise, add a new cryptocurrency at the top of the list
+    portfolio.unshift({
         name,
-        quantity
+        quantity,
+        image
     });
     // Save the updated portfolio back to localStorage
     (0, _utilsMjs.savePortfolio)(portfolio);
     // Update the displayed total value
     updateTotalValue();
 }
-function removeCrypto(name) {
-    let portfolio = (0, _utilsMjs.getPortfolio)();
-    portfolio = portfolio.filter((crypto)=>crypto.name !== name);
-    // Save the updated portfolio back to localStorage
-    (0, _utilsMjs.savePortfolio)(portfolio);
-    // Update the displayed portfolio and total value after removing
-    renderPortfolio();
-    updateTotalValue();
+function getTotalAssets() {
+    const portfolio = (0, _utilsMjs.getPortfolio)();
+    return portfolio.length;
 }
-function getTotalValue() {
+let cachedTotalValue = null;
+async function getTotalValue() {
     const portfolio = (0, _utilsMjs.getPortfolio)();
     let totalValue = 0;
-    // Simulate value as quantity * price of 1 (this will be replaced by actual API data)
-    portfolio.forEach((crypto)=>{
-        totalValue += crypto.quantity * 1; // Dummy price for now
-    });
+    // Loop through the portfolio and fetch the current price for each cryptocurrency
+    for (const crypto of portfolio){
+        const currentPrice = await (0, _apiServiceMjs.fetchCryptoPrice)(crypto.name.toLowerCase());
+        if (currentPrice) totalValue += crypto.quantity * currentPrice;
+        else console.error(`Price not found for ${crypto.name}`);
+    }
     return totalValue;
 }
-function updateTotalValue() {
-    const totalValue = getTotalValue();
-    document.getElementById("portfolio-value").innerText = totalValue.toFixed(2);
-}
-function renderPortfolio() {
-    const portfolio = (0, _utilsMjs.getPortfolio)();
-    const portfolioContainer = document.getElementById("portfolio-container");
-    portfolioContainer.innerHTML = ""; // Clear the container before rendering
-    // If the portfolio is empty
-    if (portfolio.length === 0) {
-        portfolioContainer.innerHTML = "<p>Your portfolio is empty</p>";
-        return;
-    }
-    // Render each cryptocurrency in the portfolio
-    portfolio.forEach((crypto)=>{
-        const cryptoItem = document.createElement("div");
-        cryptoItem.className = "portfolio-item";
-        cryptoItem.innerHTML = `
-        <p>${crypto.name}: ${crypto.quantity}</p>
-        <button class="remove-btn" data-name="${crypto.name}">Remove</button>
-      `;
-        portfolioContainer.appendChild(cryptoItem);
+async function updateTotalValue() {
+    const totalValue = await getTotalValue();
+    const totalAssets = getTotalAssets();
+    const formattedValue = totalValue.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
     });
-    // Attach event listeners for remove buttons
-    const removeButtons = document.querySelectorAll(".remove-btn");
-    removeButtons.forEach((button)=>{
-        button.addEventListener("click", (event)=>{
-            const name = event.target.getAttribute("data-name");
-            removeCrypto(name);
-        });
-    });
+    document.getElementById("portfolio-value").innerText = `${formattedValue}`;
+    document.getElementById("total-asset").innerText = totalAssets;
 }
 
-},{"./utils.mjs":"6bMgd","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6bMgd":[function(require,module,exports) {
+},{"./utils.mjs":"6bMgd","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./apiService.mjs":"6rMlk"}],"6bMgd":[function(require,module,exports) {
 // Utility function to retrieve portfolio from localStorage
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
@@ -818,7 +801,8 @@ async function fetchCryptoList(query) {
         return data.coins.map((coin)=>({
                 id: coin.id,
                 name: coin.name,
-                symbol: coin.symbol
+                symbol: coin.symbol,
+                image: coin.thumb
             }));
     } catch (error) {
         console.error(error);
@@ -826,6 +810,56 @@ async function fetchCryptoList(query) {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["fQFrJ","1Z4Rq"], "1Z4Rq", "parcelRequire5d4f")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"caVH5":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+// Function to remove a cryptocurrency from the portfolio
+parcelHelpers.export(exports, "removeCrypto", ()=>removeCrypto);
+// Function to render the portfolio in the UI
+parcelHelpers.export(exports, "renderPortfolio", ()=>renderPortfolio);
+var _utilsMjs = require("./utils.mjs");
+var _portfolioManagerMjs = require("./portfolioManager.mjs");
+function removeCrypto(name) {
+    let portfolio = (0, _utilsMjs.getPortfolio)();
+    portfolio = portfolio.filter((crypto)=>crypto.name !== name);
+    // Save the updated portfolio back to localStorage
+    (0, _utilsMjs.savePortfolio)(portfolio);
+    // Update the displayed portfolio and total value after removing
+    renderPortfolio();
+    (0, _portfolioManagerMjs.updateTotalValue)();
+}
+function renderPortfolio() {
+    const portfolio = (0, _utilsMjs.getPortfolio)();
+    const portfolioContainer = document.getElementById("portfolio-container");
+    portfolioContainer.innerHTML = ""; // Clear the container before rendering
+    // If the portfolio is empty
+    if (portfolio.length === 0) {
+        portfolioContainer.innerHTML = "<p>Your portfolio is empty</p>";
+        return;
+    }
+    // Render each cryptocurrency in the portfolio
+    portfolio.forEach((crypto)=>{
+        const cryptoItem = document.createElement("div");
+        cryptoItem.className = "portfolio-item";
+        cryptoItem.innerHTML = `
+        <img src="${crypto.image}" alt="${crypto.name}" class="crypto-image" />
+        <p class="crypto-info"">${crypto.name}: ${crypto.quantity}</p>
+        <button class="remove-btn" data-name="${crypto.name}">Remove</button>
+      `;
+        portfolioContainer.appendChild(cryptoItem);
+    });
+    // Attach event listeners for remove buttons
+    const removeButtons = document.querySelectorAll(".remove-btn");
+    removeButtons.forEach((button)=>{
+        button.addEventListener("click", (event)=>{
+            const name = event.target.getAttribute("data-name");
+            removeCrypto(name); // Call the function from portfolioManager to remove
+            renderPortfolio(); // Re-render the portfolio after removal
+            (0, _portfolioManagerMjs.updateTotalValue)(); // Update the total value after removal
+        });
+    });
+}
+
+},{"./utils.mjs":"6bMgd","./portfolioManager.mjs":"iWjTE","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["fQFrJ","1Z4Rq"], "1Z4Rq", "parcelRequire5d4f")
 
 //# sourceMappingURL=index.5d9dacde.js.map

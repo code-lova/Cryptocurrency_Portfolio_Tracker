@@ -1,10 +1,9 @@
 import {
   addCrypto,
-  getTotalValue,
-  renderPortfolio,
-  updateTotalValue,
+  updateTotalValue
 } from "./portfolioManager.mjs";
 import { fetchCryptoList, fetchCryptoPrice } from "./apiService.mjs";
+import { renderPortfolio } from "./uiComponents.mjs";
 
 document.addEventListener("DOMContentLoaded", () => {
   // Render the portfolio on page load
@@ -22,19 +21,28 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("crypto-quantity").value
       );
 
-      // Fetch the price of the selected cryptocurrency
-      const cryptoPrice = await fetchCryptoPrice(cryptoName.toLowerCase());
+      const cryptoList = await fetchCryptoList(cryptoName.toLowerCase());
+      const selectedCrypto = cryptoList.find(crypto => crypto.name.toLowerCase() === cryptoName.toLowerCase());
+    
+      if (selectedCrypto) {
 
-      if (cryptoPrice) {
-        addCrypto(cryptoName, cryptoQuantity);
-        // Update the total portfolio value
-        document.getElementById("portfolio-value").innerText =
-          getTotalValue().toFixed(2);
-        // Clear the form inputs
-        document.getElementById("crypto-name").value = "";
-        document.getElementById("crypto-quantity").value = "";
+        // Fetch the current price of the selected cryptocurrency
+        const cryptoPrice = await fetchCryptoPrice(selectedCrypto.id);
+        if(cryptoPrice){
+          addCrypto(selectedCrypto.name, cryptoQuantity, selectedCrypto.image); 
+          renderPortfolio(); 
+          updateTotalValue();
+          alert("Your portfolio has been updated");
+
+          //clear the input field
+          document.getElementById("crypto-name").value = "";
+          document.getElementById("crypto-quantity").value = "";
+        }else {
+          // If price is not available, alert the user
+          alert("Selected cryptocurrency price is unavailable.");
+        }
       } else {
-        alert("Cryptocurrency not found or price unavailable.");
+        alert("Cryptocurrency not found or image unavailable.");
       }
     });
 

@@ -42,7 +42,8 @@ export async function fetchCryptoList(query) {
         return data.coins.map(coin => ({
             id: coin.id,
             name: coin.name,
-            symbol: coin.symbol
+            symbol: coin.symbol,
+            image: coin.thumb
         }));
     } catch (error) {
         console.error(error);

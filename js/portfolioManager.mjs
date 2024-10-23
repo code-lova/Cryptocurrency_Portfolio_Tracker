@@ -1,7 +1,9 @@
 import { getPortfolio, savePortfolio } from './utils.mjs';
+import { fetchCryptoPrice } from "./apiService.mjs";
+
 
 // Function to add a cryptocurrency to the portfolio
-export function addCrypto(name, quantity) {
+export function addCrypto(name, quantity, image) {
   const portfolio = getPortfolio();
   const existingCrypto = portfolio.find(crypto => crypto.name === name);
 
@@ -9,8 +11,8 @@ export function addCrypto(name, quantity) {
     // If the cryptocurrency already exists, update the quantity
     existingCrypto.quantity += quantity;
   } else {
-    // Otherwise, add a new cryptocurrency
-    portfolio.push({ name, quantity });
+    // Otherwise, add a new cryptocurrency at the top of the list
+    portfolio.unshift({ name, quantity, image });
   }
 
   // Save the updated portfolio back to localStorage
@@ -20,68 +22,37 @@ export function addCrypto(name, quantity) {
    updateTotalValue();
 }
 
-// Function to remove a cryptocurrency from the portfolio
-export function removeCrypto(name) {
-  let portfolio = getPortfolio();
-  portfolio = portfolio.filter(crypto => crypto.name !== name);
-
-  // Save the updated portfolio back to localStorage
-  savePortfolio(portfolio);
-  // Update the displayed portfolio and total value after removing
-  renderPortfolio();
-  updateTotalValue();
+// Function to get the total number cryptocurrencies in the portfolio
+export function getTotalAssets() {
+  const portfolio = getPortfolio();
+  return portfolio.length;
 }
 
+let cachedTotalValue = null;
 // Function to get the total value of the portfolio
-export function getTotalValue() {
+export async function getTotalValue() {
   const portfolio = getPortfolio();
   let totalValue = 0;
 
-  // Simulate value as quantity * price of 1 (this will be replaced by actual API data)
-  portfolio.forEach(crypto => {
-    totalValue += crypto.quantity * 1; // Dummy price for now
-  });
+  // Loop through the portfolio and fetch the current price for each cryptocurrency
+  for (const crypto of portfolio) {
+    const currentPrice = await fetchCryptoPrice(crypto.name.toLowerCase());
+    if (currentPrice) {
+      totalValue += crypto.quantity * currentPrice;
+    } else {
+      console.error(`Price not found for ${crypto.name}`);
+    }
+  }
 
   return totalValue;
 }
 
 // Function to update the displayed total value in the UI
-export function updateTotalValue() {
-    const totalValue = getTotalValue();
-    document.getElementById('portfolio-value').innerText = totalValue.toFixed(2);
-}
+export async function updateTotalValue() {
+  const totalValue = await getTotalValue();
+  const totalAssets = getTotalAssets();
+  const formattedValue = totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  document.getElementById('portfolio-value').innerText = `${formattedValue}`;
 
-
-// Function to render the portfolio in the UI
-export function renderPortfolio() {
-    const portfolio = getPortfolio();
-    const portfolioContainer = document.getElementById('portfolio-container');
-  
-    portfolioContainer.innerHTML = ''; // Clear the container before rendering
-  
-    // If the portfolio is empty
-    if (portfolio.length === 0) {
-      portfolioContainer.innerHTML = '<p>Your portfolio is empty</p>';
-      return;
-    }
-  
-    // Render each cryptocurrency in the portfolio
-    portfolio.forEach(crypto => {
-      const cryptoItem = document.createElement('div');
-      cryptoItem.className = 'portfolio-item';
-      cryptoItem.innerHTML = `
-        <p>${crypto.name}: ${crypto.quantity}</p>
-        <button class="remove-btn" data-name="${crypto.name}">Remove</button>
-      `;
-      portfolioContainer.appendChild(cryptoItem);
-    });
-  
-    // Attach event listeners for remove buttons
-    const removeButtons = document.querySelectorAll('.remove-btn');
-    removeButtons.forEach(button => {
-      button.addEventListener('click', (event) => {
-        const name = event.target.getAttribute('data-name');
-        removeCrypto(name);
-      });
-    });
+  document.getElementById('total-asset').innerText = totalAssets;
 }
