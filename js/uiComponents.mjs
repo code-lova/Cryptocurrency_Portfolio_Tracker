@@ -1,5 +1,6 @@
 import { getPortfolio, savePortfolio } from "./utils.mjs";
 import { updateTotalValue } from "./portfolioManager.mjs";
+import { drawPriceChart } from "./charts.mjs";
 
 
 // Function to remove a cryptocurrency from the portfolio
@@ -27,6 +28,11 @@ export function renderPortfolio() {
     return;
   }
 
+  // Draw the price chart for the first crypto item in the portfolio
+  if (portfolio.length > 0) {
+    drawPriceChart(portfolio[0].historicalData);
+  }
+
   // Render each cryptocurrency in the portfolio
   portfolio.forEach((crypto) => {
     const cryptoItem = document.createElement("div");
@@ -37,6 +43,12 @@ export function renderPortfolio() {
         <button class="remove-btn" data-name="${crypto.name}">Remove</button>
       `;
     portfolioContainer.appendChild(cryptoItem);
+
+    // Attach an event listener to display chart on click
+    cryptoItem.addEventListener("click", () => {
+      drawPriceChart(crypto.historicalData);
+    });
+
   });
 
   // Attach event listeners for remove buttons
@@ -44,7 +56,7 @@ export function renderPortfolio() {
   removeButtons.forEach((button) => {
     button.addEventListener("click", (event) => {
       const name = event.target.getAttribute("data-name");
-      removeCrypto(name); // Call the function from portfolioManager to remove
+      removeCrypto(name); // Call the function above to remove
       renderPortfolio(); // Re-render the portfolio after removal
       updateTotalValue(); // Update the total value after removal
     });
