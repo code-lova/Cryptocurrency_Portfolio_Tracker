@@ -741,7 +741,7 @@ async function updateTotalValue() {
     document.getElementById("total-asset").innerText = totalAssets;
 }
 
-},{"./utils.mjs":"6bMgd","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./apiService.mjs":"6rMlk","./charts.mjs":"7G3wL","./uiComponents.mjs":"caVH5"}],"6bMgd":[function(require,module,exports) {
+},{"./utils.mjs":"6bMgd","./apiService.mjs":"6rMlk","./charts.mjs":"7G3wL","./uiComponents.mjs":"caVH5","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6bMgd":[function(require,module,exports) {
 // Utility function to retrieve portfolio from localStorage
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
@@ -920,7 +920,7 @@ function drawPriceChart(prices) {
     });
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","chart.js/auto":"d8NN9"}],"d8NN9":[function(require,module,exports) {
+},{"chart.js/auto":"d8NN9","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"d8NN9":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _chartJs = require("../dist/chart.js");
@@ -14410,6 +14410,6 @@ function renderPortfolio() {
     });
 }
 
-},{"./utils.mjs":"6bMgd","./portfolioManager.mjs":"iWjTE","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./charts.mjs":"7G3wL"}]},["fQFrJ","1Z4Rq"], "1Z4Rq", "parcelRequire5d4f")
+},{"./utils.mjs":"6bMgd","./portfolioManager.mjs":"iWjTE","./charts.mjs":"7G3wL","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["fQFrJ","1Z4Rq"], "1Z4Rq", "parcelRequire5d4f")
 
 //# sourceMappingURL=index.5d9dacde.js.map
